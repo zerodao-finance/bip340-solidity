@@ -1,11 +1,21 @@
+#from brownie import *
+
+from brownie.network import priority_fee
+
+import json
 import binascii
 import pytest
 
-PK_X = '550256b7f5f571652a4bc2bdf8f50d05cf4b45a3821c75eaf2583dab74101bc3'
-SIG = 'e727159d38e1cd3f6293f1b837ca5a3fb700a2ec7b83e12b22b2d9cc6c17209cc0881332649cb23934384b63b48ef8efcd9faa52e7c422df2a16842351b9ddd4'
+PK_X = 'f47eb96e8590b858d5522c4c4489d9870bffdf97136f3a5a8ba0d0930620fa72'
+SIG = '7674d4cbe57e69dea138a3e87ad9acb935019b30a276d6afcff73b1b608c97d9ecdd80142c99ceedd72936c6c57965966eab3d8ef7078dd3bbba292c874ea1e6'
 MSG_HASH = '3977fff1f0521218d0ae4bfbbc556eaea6fc29146290fa108588c3f7d2672fab'
 
+# e = 72dcfd80a93844c4413d153a5c5203bdb93515f3d35ec6158bd46895a25dbef0
+# rv = 02 7674d4cbe57e69dea138a3e87ad9acb935019b30a276d6afcff73b1b608c97d9
+
 def test_verify(Bip340, accounts):
+    priority_fee('10 gwei')
+
     pkx = int.from_bytes(binascii.unhexlify(PK_X), 'big')
     sig = binascii.unhexlify(SIG)
     assert len(sig) == 64, 'sig not 64 bytes'
@@ -16,7 +26,8 @@ def test_verify(Bip340, accounts):
     print(pkx, sig_rx, sig_s, MSG_HASH)
 
     lib = accounts[0].deploy(Bip340)
-    res = lib.verify(pkx, sig_rx, sig_s, msghash)
-
-    print(res)
+    print('BEFORE VERIFY')
+    res = lib.verify(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+    print('res', res)
+    print('AFTER VERIFY')
 
