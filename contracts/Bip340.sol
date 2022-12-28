@@ -6,7 +6,6 @@ import "./EllipticCurve.sol";
 import "./Secp256k1.sol";
 
 contract Bip340 {
-
     /// Verifies a BIP340 signature parsed as `(rx, s)` form against a message
     /// `m` and a pubkey's x coord `px`.
     ///
@@ -24,9 +23,7 @@ contract Bip340 {
         uint256 e = computeChallenge(bytes32(rx), bytes32(px), m);
 
         // Let R = s⋅G - e⋅P.
-        (uint256 sgx, uint256 sgy) = EllipticCurve.ecMul(s, Secp256k1.GX, Secp256k1.GY, Secp256k1.AA, Secp256k1.PP);
-        (uint256 epx, uint256 epy) = EllipticCurve.ecMul(e, px, py, Secp256k1.AA, Secp256k1.PP);
-        (uint256 rvx, uint256 rvy) = EllipticCurve.ecSub(sgx, sgy, epx, epy, Secp256k1.AA, Secp256k1.PP);
+        (uint256 rvx, uint256 rvy) = computeRv(s, e, px, py);
 
         // Fail if is_infinite(R).
         if (rvx == 0 && rvy == 0) { // this could be simpler
@@ -40,6 +37,24 @@ contract Bip340 {
 
         // Fail if x(R) ≠ r.
         return rvx == rx; // if they match then all good!
+    }
+
+    /// Special combination to compute r_v.
+    ///
+    /// Done with jacobian coordinates to save gas.  Split out to avoid making
+    /// the stack too deep.
+    function computeRv(uint256 s, uint256 e, uint256 px, uint256 py) internal pure returns (uint256, uint256) {
+        // Let R = s⋅G - e⋅P.
+        (uint256 sgx, uint256 sgy, uint256 sgz) = EllipticCurve.jacMul(s, Secp256k1.GX, Secp256k1.GY, 1, Secp256k1.AA, Secp256k1.PP);
+        (uint256 epx, uint256 epy, uint256 epz) = EllipticCurve.jacMul(e, px, py, 1, Secp256k1.AA, Secp256k1.PP);
+        uint256 epy_inv = (Secp256k1.PP - epy) % Secp256k1.PP;
+        (uint256 rvx, uint256 rvy, uint256 rvz) = EllipticCurve.jacAdd(sgx, sgy, sgz, epx, epy_inv, epz, Secp256k1.PP);
+
+        // Convert back to affine now that we're done.  I don't think we
+        // actually have to compute the y coordinate.
+        //
+        // TODO check on how infinities work here
+        return EllipticCurve.toAffine(rvx, rvy, rvz, Secp256k1.PP);
     }
 
     /// BIP340 challenge function.
