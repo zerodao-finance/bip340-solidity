@@ -60,10 +60,7 @@ contract Bip340 {
         uint256 epy_inv = (Secp256k1.PP - epy) % Secp256k1.PP; // only have to flip the y coordinate
         (uint256 rvx, uint256 rvy, uint256 rvz) = EllipticCurve.jacAdd(sgx, sgy, sgz, epx, epy_inv, epz, Secp256k1.PP);
 
-        // Convert back to affine now that we're done.  I don't think we
-        // actually have to compute the y coordinate.
-        //
-        // TODO check on how infinities work here
+        // Convert back to affine now that we're done.
         return EllipticCurve.toAffine(rvx, rvy, rvz, Secp256k1.PP);
     }
 
