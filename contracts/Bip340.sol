@@ -14,8 +14,10 @@ contract Bip340 {
     /// r - signature r commitment
     /// s - signature s proof
     /// m - message hash
-    function verify(uint256 px, uint256 rx, uint256 s, bytes32 m) public pure {
+    function verify(uint256 px, uint256 rx, uint256 s, bytes32 m) public pure returns (bool) {
         // Let P = lift_x(int(pk)); fail if that fails.
+        //
+        // This *could* be precomputed and stored.
         uint256 py = EllipticCurve.deriveY(0x02, px, Secp256k1.AA, Secp256k1.BB, Secp256k1.PP);
 
         // Let e = int(hashBIP0340/challenge(bytes(r) || bytes(P) || m)) mod n.
@@ -27,15 +29,17 @@ contract Bip340 {
         (uint256 rvx, uint256 rvy) = EllipticCurve.ecSub(sgx, sgy, epx, epy, Secp256k1.AA, Secp256k1.PP);
 
         // Fail if is_infinite(R).
-        require(rvx != 0 && rvy != 0, "invalid signature 1");
+        if (rvx == 0 && rvy == 0) { // this could be simpler
+            return false;
+        }
 
         // Fail if not has_even_y(R).
-        require((rvy % 2) == 0, "invalid signature 2");
+        if ((rvy % 2) != 0) {
+            return false;
+        }
 
         // Fail if x(R) ≠ r.
-        require(rvx == rx, "invalid signature 3");
-
-        // All good!
+        return rvx == rx; // if they match then all good!
     }
 
     /// BIP340 challenge function.
