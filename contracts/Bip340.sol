@@ -42,7 +42,11 @@ contract Bip340 {
     ///
     /// Hopefully the first SHA256 call gets inlined.
     function computeChallenge(bytes32 rx, bytes32 px, bytes32 m) internal pure returns (uint256) {
-        bytes32 tag = sha256("BIP0340/challenge");
+        // Precomputed `sha256("BIP0340/challenge")`.
+        //
+        // Saves ~10k gas, mostly from byte shuffling to prepare the call.
+        bytes32 tag = 0x7bb52d7a9fef58323eb1bf7a407db382d2f3f2d81bb1224f49fe518f6d48d37c;
+
         // Let e = int(hashBIP0340/challenge(bytes(r) || bytes(P) || m)) mod n.
         return uint256(sha256(abi.encodePacked(tag, tag, rx, px, m))) % Secp256k1.PP;
     }
