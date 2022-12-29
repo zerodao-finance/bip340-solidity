@@ -111,8 +111,9 @@ contract Bip340 {
    	        uint256 ai = av[i - 1];
 
             // au⋅Ru
-   	        uint256 riy = EllipticCurve.deriveY(0x02, rxi, Secp256k1.AA, Secp256k1.BB, Secp256k1.PP);
-   	        (sumrx, sumry, sumrz) = EllipticCurve.jacMul(ai, sumrx, sumry, sumrz, Secp256k1.AA, Secp256k1.PP);
+            uint256 ryi = EllipticCurve.deriveY(0x02, rxi, Secp256k1.AA, Secp256k1.BB, Secp256k1.PP);
+            (uint256 arxi, uint256 aryi, uint256 arzi) = EllipticCurve.jacMul(ai, rxi, ryi, 1, Secp256k1.AA, Secp256k1.PP);
+            (sumrx, sumry, sumrz) = EllipticCurve.jacAdd(sumrx, sumry, sumrz, arxi, aryi, arzi, Secp256k1.PP);
    	    }
 
    	    return EllipticCurve.toAffine(sumrx, sumry, sumrz, Secp256k1.PP);
@@ -132,7 +133,7 @@ contract Bip340 {
             // (aueu)⋅Pu
    	        uint256 ei = computeChallenge(bytes32(rxi), bytes32(pxi), mi);
    	        uint256 aiei = mulmod(av[i - 1], ei, Secp256k1.PP);
-   	        (uint256 epxi, uint256 epyi, uint256 epzi) = EllipticCurve.jacMul(aiei, Secp256k1.GX, Secp256k1.GY, 1, Secp256k1.AA, Secp256k1.PP);
+            (uint256 epxi, uint256 epyi, uint256 epzi) = EllipticCurve.jacMul(aiei, pxi, pyi, 1, Secp256k1.AA, Secp256k1.PP);
    	        (sumepx, sumepy, sumepz) = EllipticCurve.jacAdd(sumepx, sumepy, sumepz, epxi, epyi, epzi, Secp256k1.PP);
    	    }
 
