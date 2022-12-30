@@ -73,17 +73,28 @@ contract Bip340 {
     /// malicious signer could screw things up.
     function verifyBatch(uint256 px, uint256 py, uint256[] memory rxv, uint256[] memory sv, bytes32[] memory mv, uint256[] memory av) public pure returns (bool) {
         // Verify lengths so we don't have to check things again.
-        uint256 l = rxv.length;
-        uint256 lm1 = l - 1;
-        require(l > 1, "VB:XVL");
-        require(sv.length == l, "VB:SVL");
-        require(mv.length == l, "VB:MVL");
-        require(av.length == lm1, "VB:AVL");
+        //
+        // Scoped weirdly because of stack constraints.
+        {
+            uint256 l = rxv.length;
+            uint256 lm1 = l - 1;
+            require(l > 1, "VB:XVL");
+            require(sv.length == l, "VB:SVL");
+            require(mv.length == l, "VB:MVL");
+            require(av.length == lm1, "VB:AVL");
+        }
 
-        (uint256 rhs1x, uint256 rhs1y) = _computeSum_aiRi(rxv, mv, av);
-        (uint256 rhs2x, uint256 rhs2y) = _computeSum_aieiPi(px, py, rxv, mv, av);
+        // Again more stack window manipulation.
+        (uint256 rhsx, uint256 rhsy) = (0, 0);
+        {
+            // Order is important for stack constraints.
+            (uint256 rhs2x, uint256 rhs2y, uint256 rhs2z) = _computeSum_aieiPi(px, py, rxv, mv, av);
+            (uint256 rhs1x, uint256 rhs1y, uint256 rhs1z) = _computeSum_aiRi(rxv, mv, av);
+            (uint256 srhsx, uint256 srhsy, uint256 srhsz) = EllipticCurve.jacAdd(rhs1x, rhs1y, rhs1z, rhs2x, rhs2y, rhs2z, Secp256k1.PP);
+            (rhsx, rhsy) = EllipticCurve.toAffine(srhsx, srhsy, srhsz, Secp256k1.PP);
+        }
+        
         (uint256 lhsx, uint256 lhsy) = _computeSum_aisiG(sv, av);
-        (uint256 rhsx, uint256 rhsy) = EllipticCurve.ecAdd(rhs1x, rhs1y, rhs2x, rhs2y, Secp256k1.AA, Secp256k1.PP);
 
         // Assert equality.
         return (lhsx == rhsx) && (lhsy == rhsy);
@@ -98,7 +109,7 @@ contract Bip340 {
         return EllipticCurve.ecMul(sumas, Secp256k1.GX, Secp256k1.GY, Secp256k1.AA, Secp256k1.PP);
     }
 
-    function _computeSum_aiRi(uint256[] memory rxv, bytes32[] memory mv, uint256[] memory av) public pure returns (uint256, uint256) {
+    function _computeSum_aiRi(uint256[] memory rxv, bytes32[] memory mv, uint256[] memory av) public pure returns (uint256, uint256, uint256) {
         uint256 r0y = EllipticCurve.deriveY(0x02, rxv[0], Secp256k1.AA, Secp256k1.BB, Secp256k1.PP);
         (uint256 sumrx, uint256 sumry, uint256 sumrz) = (rxv[0], r0y, 1);
 
@@ -114,28 +125,35 @@ contract Bip340 {
             (sumrx, sumry, sumrz) = EllipticCurve.jacAdd(sumrx, sumry, sumrz, arxi, aryi, arzi, Secp256k1.PP);
         }
 
-        return EllipticCurve.toAffine(sumrx, sumry, sumrz, Secp256k1.PP);
+        return (sumrx, sumry, sumrz);
     }
-    
-    function _computeSum_aieiPi(uint256 px, uint256 py, uint256[] memory rxv, bytes32[] memory mv, uint256[] memory av) public pure returns (uint256, uint256) {
+
+    function _computeSum_aieiPi(uint256 px, uint256 py, uint256[] memory rxv, bytes32[] memory mv, uint256[] memory av) public pure returns (uint256, uint256, uint256) {
         uint256 e0 = computeChallenge(bytes32(rxv[0]), bytes32(px), mv[0]);
         (uint256 sumepx, uint256 sumepy, uint256 sumepz) = EllipticCurve.jacMul(e0, px, py, 1, Secp256k1.AA, Secp256k1.PP);
 
         for (uint256 i = 1; i < av.length; i++) {
             // Make some copies so we don't blow the stack window.
-            uint256 px = px;
-            uint256 py = py;
+            uint256 px2 = px;
+            uint256 py2 = py;
             uint256 rxi = rxv[i];
             bytes32 mi = mv[i];
+            uint256 ai = av[i - 1];
 
             // (aueu)⋅Pu
-            uint256 ei = computeChallenge(bytes32(rxi), bytes32(px), mi);
-            uint256 aiei = mulmod(av[i - 1], ei, Secp256k1.PP);
-            (uint256 epxi, uint256 epyi, uint256 epzi) = EllipticCurve.jacMul(aiei, px, py, 1, Secp256k1.AA, Secp256k1.PP);
+            (uint256 epxi, uint256 epyi, uint256 epzi) = (0, 0, 0);
+
+            // More stack scoping.
+            {
+                uint256 ei = computeChallenge(bytes32(rxi), bytes32(px2), mi);
+                uint256 aiei = mulmod(ai, ei, Secp256k1.PP);
+                (epxi, epyi, epzi) = EllipticCurve.jacMul(aiei, px2, py2, 1, Secp256k1.AA, Secp256k1.PP);
+            }
+
             (sumepx, sumepy, sumepz) = EllipticCurve.jacAdd(sumepx, sumepy, sumepz, epxi, epyi, epzi, Secp256k1.PP);
         }
 
-        return EllipticCurve.toAffine(sumepx, sumepy, sumepz, Secp256k1.PP);
+        return (sumepx, sumepy, sumepz);
     }
 
     /// BIP340 challenge function.
