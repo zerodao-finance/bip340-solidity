@@ -71,19 +71,17 @@ contract Bip340 {
     /// length 1 less than the other vectors.  These should be sampled *after*
     /// the signature verification to be safe, otherwise there's tricks a
     /// malicious signer could screw things up.
-    function verifyBatch(uint256[] memory pxv, uint256[] memory pyv, uint256[] memory rxv, uint256[] memory sv, bytes32[] memory mv, uint256[] memory av) public pure returns (bool) {
+    function verifyBatch(uint256 px, uint256 py, uint256[] memory rxv, uint256[] memory sv, bytes32[] memory mv, uint256[] memory av) public pure returns (bool) {
         // Verify lengths so we don't have to check things again.
-        uint256 l = pxv.length;
+        uint256 l = rxv.length;
         uint256 lm1 = l - 1;
         require(l > 1, "VB:XVL");
-        require(pyv.length == l, "VB:YVL");
-        require(rxv.length == l, "VB:RVL");
         require(sv.length == l, "VB:SVL");
         require(mv.length == l, "VB:MVL");
         require(av.length == lm1, "VB:AVL");
 
         (uint256 rhs1x, uint256 rhs1y) = _computeSum_aiRi(rxv, mv, av);
-        (uint256 rhs2x, uint256 rhs2y) = _computeSum_aieiPi(pxv, pyv, rxv, mv, av);
+        (uint256 rhs2x, uint256 rhs2y) = _computeSum_aieiPi(px, py, rxv, mv, av);
         (uint256 lhsx, uint256 lhsy) = _computeSum_aisiG(sv, av);
         (uint256 rhsx, uint256 rhsy) = EllipticCurve.ecAdd(rhs1x, rhs1y, rhs2x, rhs2y, Secp256k1.AA, Secp256k1.PP);
 
@@ -119,21 +117,21 @@ contract Bip340 {
         return EllipticCurve.toAffine(sumrx, sumry, sumrz, Secp256k1.PP);
     }
     
-    function _computeSum_aieiPi(uint256[] memory pxv, uint256[] memory pyv, uint256[] memory rxv, bytes32[] memory mv, uint256[] memory av) public pure returns (uint256, uint256) {
-        uint256 e0 = computeChallenge(bytes32(rxv[0]), bytes32(pxv[0]), mv[0]);
-        (uint256 sumepx, uint256 sumepy, uint256 sumepz) = EllipticCurve.jacMul(e0, pxv[0], pyv[0], 1, Secp256k1.AA, Secp256k1.PP);
+    function _computeSum_aieiPi(uint256 px, uint256 py, uint256[] memory rxv, bytes32[] memory mv, uint256[] memory av) public pure returns (uint256, uint256) {
+        uint256 e0 = computeChallenge(bytes32(rxv[0]), bytes32(px), mv[0]);
+        (uint256 sumepx, uint256 sumepy, uint256 sumepz) = EllipticCurve.jacMul(e0, px, py, 1, Secp256k1.AA, Secp256k1.PP);
 
         for (uint256 i = 1; i < av.length; i++) {
-            // Split these out so we don't blow the stack window.
-            uint256 pxi = pxv[i];
-            uint256 pyi = pyv[i];
+            // Make some copies so we don't blow the stack window.
+            uint256 px = px;
+            uint256 py = py;
             uint256 rxi = rxv[i];
             bytes32 mi = mv[i];
 
             // (aueu)⋅Pu
-            uint256 ei = computeChallenge(bytes32(rxi), bytes32(pxi), mi);
+            uint256 ei = computeChallenge(bytes32(rxi), bytes32(px), mi);
             uint256 aiei = mulmod(av[i - 1], ei, Secp256k1.PP);
-            (uint256 epxi, uint256 epyi, uint256 epzi) = EllipticCurve.jacMul(aiei, pxi, pyi, 1, Secp256k1.AA, Secp256k1.PP);
+            (uint256 epxi, uint256 epyi, uint256 epzi) = EllipticCurve.jacMul(aiei, px, py, 1, Secp256k1.AA, Secp256k1.PP);
             (sumepx, sumepy, sumepz) = EllipticCurve.jacAdd(sumepx, sumepy, sumepz, epxi, epyi, epzi, Secp256k1.PP);
         }
 
