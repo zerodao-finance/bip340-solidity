@@ -20,6 +20,7 @@ library Secp256k1 {
   uint256 public constant AA = 0;
   uint256 public constant BB = 7;
   uint256 public constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
+  uint256 public constant NN = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141; // curve order
 
   /// @notice Public Key derivation from private key
   /// Warning: this is just an example. Do not expose your private key.

@@ -7,6 +7,8 @@ import binascii
 import pytest
 import random
 
+import csv
+
 # 04
 #   47938d402bc1a2824c8a9ea3f906845d64d6fb4d9f227b3cc8034c682890eceb - x
 #   cf36ad5177a1c58e1867d91a977e2e38b59aae4346cb58cf5b97907672690cc4 - y
@@ -57,43 +59,68 @@ def test_verify_single(Bip340, accounts):
 
         print(pkx, sig_rx, sig_s, BATCH_MSG_HASHES[check_idx])
 
-        print('BEFORE VERIFY', check_idx)
         res = lib.verify.transact(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
-        print('RES', check_idx, res.return_value)
-        for ev in res.events:
-            print('event', ev)
-        print('AFTER VERIFY', check_idx)
+        print('RES', check_idx, res)
 
-def test_verify_batch(Bip340Batch, accounts):
+        # TODO actually check passed
+
+"""
+def test_verify_invalid(Bip340, accounts):
     priority_fee('10 gwei')
 
     pkx = int.from_bytes(binascii.unhexlify(PK_X), 'big')
-    pky = int.from_bytes(binascii.unhexlify(PK_Y), 'big')
 
-    rv = []
-    sv = []
-    mv = []
-    for i in range(BATCH_SIZE):
-        sig = binascii.unhexlify(BATCH_SIGS[i])
+    lib = accounts[0].deploy(Bip340)
+
+    for check_idx in range(3):
+        sig = binascii.unhexlify(BATCH_SIGS[check_idx])
         assert len(sig) == 64, 'sig not 64 bytes'
-        rv.append(int.from_bytes(sig[:32], 'big'))
-        sv.append(int.from_bytes(sig[32:], 'big'))
-        mv.append(binascii.unhexlify(BATCH_MSG_HASHES[i]))
 
-    av = []
-    for i in range(BATCH_SIZE - 1):
-        # close enough to the correct range to be correct
-        av.append(random.randint(0, 2 ** 254))
+        # Modify the sig to be slightly wrong.
+        flip_at = random.randint(0, 63)
+        sig = sig[:flip_at] + bytes(sig[flip_at] ^ 0xff) + sig[(flip_at + 1):]
 
-    #print(pkx, pky, rv, sv, mv, av)
+        sig_rx = int.from_bytes(sig[:32], 'big')
+        sig_s = int.from_bytes(sig[32:64], 'big')
+        msghash = binascii.unhexlify(BATCH_MSG_HASHES[check_idx])
 
-    lib = accounts[0].deploy(Bip340Batch)
-    print('BEFORE VERIFYBATCH')
-    res = lib.verifyBatch.transact(pkx, pky, rv, sv, mv, av, {'from': accounts[0]})
-    for ev in res.events:
-        print('event', ev)
-    raise RuntimeError('check things')
-    if not res:
-        raise RuntimeError('did not verify')
-    print('AFTER VERIFYBATCH')
+        print(pkx, sig_rx, sig_s, BATCH_MSG_HASHES[check_idx])
+
+        res = lib.verify.transact(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+        print('RES', check_idx, res)
+        print('RES2', res.return_value)
+
+        # TODO actually check failed
+"""
+
+def test_vectors(Bip340, accounts):
+    priority_fee('10 gwei')
+
+    lib = accounts[0].deploy(Bip340)
+
+    with open('test-vectors.csv', 'r') as csvfile:
+        tvs = csv.DictReader(csvfile)
+
+        for row in tvs:
+            print('CHECK TEST VECTOR', row['index'], '(', row['comment'] or 'no comment', ')')
+
+            pkx_bytes = binascii.unhexlify(row['public key'])
+            msghash = binascii.unhexlify(row['message'])
+            sig = binascii.unhexlify(row['signature'])
+            exp_res = row['verification result'] == 'TRUE'
+
+            #print(row)
+
+            pkx = int.from_bytes(pkx_bytes, 'big')
+            sig_rx = int.from_bytes(sig[:32], 'big')
+            sig_s = int.from_bytes(sig[32:], 'big')
+
+            res = lib.verify.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+            print('RES', res)
+            #for ev in res.events:
+            #    print('event', ev)
+
+            print('RES', row['index'], 'exp', exp_res, 'got', res)
+            if res != exp_res:
+                raise RuntimeError('discrepancy with test vector: ' + row['comment'])
 

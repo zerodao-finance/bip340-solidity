@@ -64,8 +64,8 @@ contract Bip340Batch {
         for (uint256 i = 1; i <= av.length; i++) {
             emit Debug("s", i,  bytes32(sv[i]));
             emit Debug("a_G", i, bytes32(av[i - 1]));
-            uint256 aisi = mulmod(av[i - 1], sv[i], Secp256k1.PP);
-            sumas = addmod(sumas, aisi, Secp256k1.PP);
+            uint256 aisi = mulmod(av[i - 1], sv[i], Secp256k1.NN);
+            sumas = addmod(sumas, aisi, Secp256k1.NN);
         }
 
         return EllipticCurve.ecMul(sumas, Secp256k1.GX, Secp256k1.GY, Secp256k1.AA, Secp256k1.PP);
@@ -128,7 +128,7 @@ contract Bip340Batch {
             {
                 uint256 ei = computeChallenge(bytes32(rxi), bytes32(px2), mi);
                 emit Debug("ei", i, bytes32(ei));
-                uint256 aiei = mulmod(ai, ei, Secp256k1.PP);
+                uint256 aiei = mulmod(ai, ei, Secp256k1.NN);
                 (epxi, epyi) = EllipticCurve.ecMul(aiei, px2, py2, Secp256k1.AA, Secp256k1.PP);
             }
 
@@ -151,7 +151,7 @@ contract Bip340Batch {
         bytes32 tag = 0x7bb52d7a9fef58323eb1bf7a407db382d2f3f2d81bb1224f49fe518f6d48d37c;
 
         // Let e = int(hashBIP0340/challenge(bytes(r) || bytes(P) || m)) mod n.
-        return uint256(sha256(abi.encodePacked(tag, tag, rx, px, m))) % Secp256k1.PP;
+        return uint256(sha256(abi.encodePacked(tag, tag, rx, px, m))) % Secp256k1.NN;
     }
 }
 
