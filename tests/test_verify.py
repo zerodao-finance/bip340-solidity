@@ -6,7 +6,6 @@ import json
 import binascii
 import pytest
 import random
-
 import csv
 
 # 04
@@ -59,12 +58,10 @@ def test_verify_single(Bip340, accounts):
 
         print(pkx, sig_rx, sig_s, BATCH_MSG_HASHES[check_idx])
 
-        res = lib.verify.transact(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+        res = lib.verify.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
         print('RES', check_idx, res)
+        assert res, 'verify failed when should have passed'
 
-        # TODO actually check passed
-
-"""
 def test_verify_invalid(Bip340, accounts):
     priority_fee('10 gwei')
 
@@ -86,12 +83,9 @@ def test_verify_invalid(Bip340, accounts):
 
         print(pkx, sig_rx, sig_s, BATCH_MSG_HASHES[check_idx])
 
-        res = lib.verify.transact(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+        res = lib.verify.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
         print('RES', check_idx, res)
-        print('RES2', res.return_value)
-
-        # TODO actually check failed
-"""
+        assert not res, 'verify passed when should have failed'
 
 def test_vectors(Bip340, accounts):
     priority_fee('10 gwei')
@@ -102,7 +96,7 @@ def test_vectors(Bip340, accounts):
         tvs = csv.DictReader(csvfile)
 
         for row in tvs:
-            print('CHECK TEST VECTOR', row['index'], '(', row['comment'] or 'no comment', ')')
+            print('== CHECK TEST VECTOR', row['index'], '(', row['comment'] or 'no comment', ')')
 
             pkx_bytes = binascii.unhexlify(row['public key'])
             msghash = binascii.unhexlify(row['message'])
@@ -116,11 +110,11 @@ def test_vectors(Bip340, accounts):
             sig_s = int.from_bytes(sig[32:], 'big')
 
             res = lib.verify.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
-            print('RES', res)
+            #print('RES', res)
             #for ev in res.events:
             #    print('event', ev)
 
             print('RES', row['index'], 'exp', exp_res, 'got', res)
             if res != exp_res:
-                raise RuntimeError('discrepancy with test vector: ' + row['comment'])
+                raise RuntimeError('discrepancy with test vector: %s (%s)' % (row['index'], row['comment']))
 

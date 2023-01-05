@@ -6,6 +6,8 @@ import json
 import binascii
 import pytest
 import random
+import itertools
+import csv
 
 # 04
 #   47938d402bc1a2824c8a9ea3f906845d64d6fb4d9f227b3cc8034c682890eceb - x
@@ -14,7 +16,7 @@ PK_X = '47938d402bc1a2824c8a9ea3f906845d64d6fb4d9f227b3cc8034c682890eceb'
 PK_Y = 'cf36ad5177a1c58e1867d91a977e2e38b59aae4346cb58cf5b97907672690cc4'
 
 # if this is less than the size of the list we only pass up to this many in the batch lists
-BATCH_SIZE = 2
+BATCH_SIZE = 3
 
 BATCH_SIGS = [
     # deadbeef (e=2e184f02e782c7b15b8fede26da057bc90c881dd332e78714e9a26a1a44d92ba)
@@ -54,18 +56,103 @@ def test_verify_batch(Bip340Batch, accounts):
         sv.append(int.from_bytes(sig[32:], 'big'))
         mv.append(binascii.unhexlify(BATCH_MSG_HASHES[i]))
 
-    av = []
-    for i in range(BATCH_SIZE - 1):
-        # close enough to the correct range to be correct
-        av.append(random.randint(0, 2 ** 254))
+    av = [random.randint(0, 2 ** 254) for _ in range(BATCH_SIZE - 1)]
+    assert len(av) == len(mv) - 1, 'av wrong length'
 
     #print(pkx, pky, rv, sv, mv, av)
 
     lib = accounts[0].deploy(Bip340Batch)
-    print('BEFORE VERIFYBATCH')
-    res = lib.verifyBatch.transact(pkx, pky, rv, sv, mv, av, {'from': accounts[0]})
-    for ev in res.events:
-        print('event', ev)
-    #raise RuntimeError('check things')
-    print('AFTER VERIFYBATCH')
+    res = lib.verifyBatch.call(pkx, pky, rv, sv, mv, av, {'from': accounts[0]})
+    if type(res) is bool:
+        print('test_verify_batch RES', res)
+        assert res, 'batch did not verify correctly'
+    else:
+        for ev in res.events:
+            print('event', ev)
+
+def test_vectors_singular(Bip340Batch, accounts):
+    priority_fee('10 gwei')
+
+    lib = accounts[0].deploy(Bip340Batch)
+
+    rows = None
+    with open('test-vectors.csv', 'r') as csvfile:
+        tvs = csv.DictReader(csvfile)
+        rows = list(tvs)
+
+    print('there are', len(rows), 'ok rows')
+
+    BATCHDUPS = 20 # can't go much higher or we run out of gas
+
+    # This is kinda a weak test.  We're not trying multiple signatures from the
+    # same privkey on *different messsages*, it's the same signature on the#
+    # same message for every call we do, just multiple times.  The math works
+    # the same way regardless, but we don't really *want* to do it this way.
+    for row in rows:
+        print('== CHECKING VECTOR', row['index'], '(', row['comment'] or 'no comment', ')')
+        pkx_bytes = binascii.unhexlify(row['public key'])
+        msghash = binascii.unhexlify(row['message'])
+        sig = binascii.unhexlify(row['signature'])
+
+        pkx = int.from_bytes(pkx_bytes, 'big')
+        sig_rx = int.from_bytes(sig[:32], 'big')
+        sig_s = int.from_bytes(sig[32:], 'big')
+
+        rxv = [sig_rx] * BATCHDUPS
+        sv = [sig_s] * BATCHDUPS
+        mv = [msghash] * BATCHDUPS
+        av = [random.randint(0, 2 ** 254) for _ in range(BATCHDUPS - 1)]
+        assert len(av) == len(mv) - 1, 'av wrong length'
+
+        exp = row['verification result'] == 'TRUE'
+        res = lib.verifyBatchXonly.call(pkx, rxv, sv, mv, av, {'from': accounts[0]})
+        if type(res) is bool:
+            assert res == exp, 'batch did not verify (%s) as expected (%s)' % (res, exp)
+
+def test_vectors_bad(Bip340Batch, accounts):
+    priority_fee('10 gwei')
+
+    lib = accounts[0].deploy(Bip340Batch)
+
+    rows = None
+    with open('test-vectors.csv', 'r') as csvfile:
+        tvs = csv.DictReader(csvfile)
+        rows = list(tvs)
+
+    # Hardcoded, taken from the test vectors file, it's fine.
+    badgroups = [[rows[5]], rows[6:14], [rows[14]]]
+
+    for fullgroup in badgroups:
+        for i in range(len(fullgroup) + 1):
+            if i == 0: continue
+            group = fullgroup[:i]
+            if len(group) == 0: continue
+            
+            idxs = ' '.join(map(lambda r: r['index'], group))
+            comments = ', '.join(map(lambda r: r['comment'] or 'no comment', group))
+            print('== CHECKING ROWS', idxs, '(', comments, ')')
+
+            row0 = group[0]
+            pkx_bytes = binascii.unhexlify(row0['public key'])
+            pkx = int.from_bytes(pkx_bytes, 'big')
+
+            rxv = []
+            sv = []
+            mv = []
+            for r in group:
+                assert r['public key'] == row0['public key'], 'bad grouping'
+                sig = binascii.unhexlify(r['signature'])
+                rxv.append(int.from_bytes(sig[:32], 'big'))
+                sv.append(int.from_bytes(sig[32:], 'big'))
+                mv.append(binascii.unhexlify(r['message']))
+
+            av = [random.randint(0, 2 ** 254) for _ in range(len(group) - 1)]
+            assert len(av) == len(mv) - 1, 'av wrong length'
+
+            res = lib.verifyBatchXonly.call(pkx, rxv, sv, mv, av, {'from': accounts[0]})
+
+            if type(res) is not bool:
+                for ev in res.events: print('event', ev)
+            else:
+                assert not res, 'batch verified when it should have not'
 
