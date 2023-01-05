@@ -16,13 +16,13 @@ contract Bip340Batch {
     /// Same as `verifyBatch`, but derives the Y coordinate on the fly.  You
     /// probably don't want to use this and should just precompute the y
     /// coordinate on-chain.
-    function verifyBatchXonly(uint256 px, uint256[] memory rxv, uint256[] memory sv, bytes32[] memory mv, uint256[] memory av) public returns (bool) {
+    function verifyBatch(uint256 px, uint256[] memory rxv, uint256[] memory sv, bytes32[] memory mv, uint256[] memory av) public returns (bool) {
         (uint256 py, bool liftOk) = Bip340Util.liftX(px);
         if (!liftOk) {
             return false;
         }
 
-        return verifyBatch(px, py, rxv, sv, mv, av);
+        return verifyBatchFull(px, py, rxv, sv, mv, av);
     }
 
     /// Batch verification.  Just like the above.  Pass everything as lists of
@@ -38,7 +38,7 @@ contract Bip340Batch {
     /// failed and the full signature verification is wrong, but we don't
     /// propagate up where.  Although checking with a typical verifier should
     /// be able to infer.
-    function verifyBatch(uint256 px, uint256 py, uint256[] memory rxv, uint256[] memory sv, bytes32[] memory mv, uint256[] memory av) public returns (bool) {
+    function verifyBatchFull(uint256 px, uint256 py, uint256[] memory rxv, uint256[] memory sv, bytes32[] memory mv, uint256[] memory av) public returns (bool) {
         // Verify lengths so we don't have to check things again.
         { // Scoped weirdly because of stack constraints.
             uint256 l = rxv.length;

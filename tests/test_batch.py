@@ -62,7 +62,7 @@ def test_verify_batch(Bip340Batch, accounts):
     #print(pkx, pky, rv, sv, mv, av)
 
     lib = accounts[0].deploy(Bip340Batch)
-    res = lib.verifyBatch.call(pkx, pky, rv, sv, mv, av, {'from': accounts[0]})
+    res = lib.verifyBatchFull.call(pkx, pky, rv, sv, mv, av, {'from': accounts[0]})
     if type(res) is bool:
         print('test_verify_batch RES', res)
         assert res, 'batch did not verify correctly'
@@ -105,7 +105,7 @@ def test_vectors_singular(Bip340Batch, accounts):
         assert len(av) == len(mv) - 1, 'av wrong length'
 
         exp = row['verification result'] == 'TRUE'
-        res = lib.verifyBatchXonly.call(pkx, rxv, sv, mv, av, {'from': accounts[0]})
+        res = lib.verifyBatch.call(pkx, rxv, sv, mv, av, {'from': accounts[0]})
         if type(res) is bool:
             assert res == exp, 'batch did not verify (%s) as expected (%s)' % (res, exp)
 
@@ -149,7 +149,7 @@ def test_vectors_bad(Bip340Batch, accounts):
             av = [random.randint(0, 2 ** 254) for _ in range(len(group) - 1)]
             assert len(av) == len(mv) - 1, 'av wrong length'
 
-            res = lib.verifyBatchXonly.call(pkx, rxv, sv, mv, av, {'from': accounts[0]})
+            res = lib.verifyBatch.call(pkx, rxv, sv, mv, av, {'from': accounts[0]})
 
             if type(res) is not bool:
                 for ev in res.events: print('event', ev)
