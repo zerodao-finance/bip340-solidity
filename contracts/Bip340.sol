@@ -8,9 +8,6 @@ import "./Secp256k1.sol";
 import "./Bip340Util.sol";
 
 contract Bip340 {
-    event Debug(string ty, bytes32 val);
-    event Check(string ty, bool v);
-
     /// Verifies a BIP340 signature parsed as `(rx, s)` form against a message
     /// `m` and a pubkey's x coord `px`.
     ///
@@ -34,7 +31,6 @@ contract Bip340 {
 
         // Check pubkey is on curve.
         if (!EllipticCurve.isOnCurve(px, py, Secp256k1.AA, Secp256k1.BB, Secp256k1.PP)) {
-            emit Debug("not on curve", bytes32(0));
             return false;
         }
 
@@ -78,9 +74,6 @@ contract Bip340 {
             // Convert back to affine now that we're done.
             (rvx, rvy) = EllipticCurve.toAffine(jrvx, jrvy, jrvz, Secp256k1.PP);
         }
-
-        emit Debug("rvx", bytes32(rvx));
-        emit Debug("rvy", bytes32(rvy));
 
         // Fail if is_infinite(R).
         if (rvx == 0 && rvy == 0) { // this could be simpler

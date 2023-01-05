@@ -21,7 +21,8 @@ library Bip340Util {
     }
 
     /// Given an x coordinate, returns the y coordinate of an even point on
-    /// the secp256k1 curve.
+    /// the secp256k1 curve.  This can be used to precompute the pubkey Y as
+    /// mentioned in a few places.
     ///
     /// The second return value specifies if the operation was successful.
     function liftX(uint256 _x) internal returns (uint256, bool) {
