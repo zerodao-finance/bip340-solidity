@@ -8,8 +8,6 @@ import "./Secp256k1.sol";
 import "./Bip340Util.sol";
 
 contract Bip340 {
-    event Debug(string k, bytes32 v);
-
     /// Verifies a BIP340 signature parsed as `(rx, s)` form against a message
     /// `m` and a pubkey's x coord `px`.
     ///
@@ -102,7 +100,6 @@ contract Bip340 {
         }
 
         (address exp, bool ok) = Bip340Util.convToFakeAddr(rx);
-        emit Debug("exp", bytes32(uint256(uint160(exp))));
         if (!ok) {
             return false;
         }
