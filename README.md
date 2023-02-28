@@ -27,6 +27,7 @@ The main functions of interest are:
 * `Bip340`
   * `verify(uint256 px, uint256 rx, uint256 s, bytes32 m)`
   * `verifyFull(uint256 px, uint256 py, uint256 rx, uint256 s, bytes32 m)`
+  * `verifyEcrecHack(uint256 px, uint256 rx, uint256 s, bytes32 m)`
 * `Bip340Batch`
   * `verifyBatch(uint256 px, uint256[] rxv, uint256[] sv, bytes32[] mv, uint256[] av)`
   * `verifyBatchFull(uint256 px, uint256 py, uint256[] rxv, uint256[] sv, bytes32[] mv, uint256[] av)`
@@ -46,6 +47,10 @@ fine), and repeatedly hashing it with a counter.  The length of this vector
 must be 1 less than the number of signatures being verified, so verifying a
 single signature with the batch verifier would not provide any `a` values.
 
+The `EcrecHack` variant uses a hack with the `ecrecover` precompile to verify
+the signature much more efficiently.  With some testing, this may replace the
+main `verify` function.
+
 ## Testing
 
 The tests run on the standard BIP340 test vectors in various configurations, as
@@ -62,9 +67,14 @@ brownie test --network anvil
 You must run the test from the directory because the Python scripts look to the
 adjacent `test-vectors.csv` to find them.
 
+**NB:** Tests for single verify currently use the `verifyEcrecHack` variant.
+
 ## Gas costs
 
 Verifying a single signature with this library costs ~610k gas.  Verifying a
 batch of signatures is hard to measure directly, but it seems safe to verify
 up to 20 signatures before reaching whatever the default limit Anvil sets.
+
+Using the hacky verification uses less gas, in the order of ~80k, but need more
+precise measurement.
 

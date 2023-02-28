@@ -50,5 +50,16 @@ library Bip340Util {
         uint256 zInv2 = mulmod(zInv, zInv, _pp);
         return mulmod(_x, zInv2, _pp);
     }
+
+    /// Converts a BIP340 pubkey X coord to what it would look like as an
+    /// Ethereum address.
+    function convToFakeAddr(uint256 px) internal returns (address, bool) {
+        (uint256 py, bool ok) = liftX(px);
+        if (!ok) {
+            return (address(0), false);
+        }
+        bytes32 h = keccak256(abi.encodePacked(bytes32(px), bytes32(py)));
+        return (address(uint160(uint256(h))), true);
+    }
 }
 

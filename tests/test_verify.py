@@ -58,7 +58,7 @@ def test_verify_single(Bip340, accounts):
 
         print(pkx, sig_rx, sig_s, BATCH_MSG_HASHES[check_idx])
 
-        res = lib.verify.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+        res = lib.verifyEcrecHack.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
         print('RES', check_idx, res)
         assert res, 'verify failed when should have passed'
 
@@ -83,7 +83,7 @@ def test_verify_invalid(Bip340, accounts):
 
         print(pkx, sig_rx, sig_s, BATCH_MSG_HASHES[check_idx])
 
-        res = lib.verify.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+        res = lib.verifyEcrecHack.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
         print('RES', check_idx, res)
         assert not res, 'verify passed when should have failed'
 
@@ -109,7 +109,7 @@ def test_vectors(Bip340, accounts):
             sig_rx = int.from_bytes(sig[:32], 'big')
             sig_s = int.from_bytes(sig[32:], 'big')
 
-            res = lib.verify.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+            res = lib.verifyEcrecHack.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
             #print('RES', res)
             #for ev in res.events:
             #    print('event', ev)
