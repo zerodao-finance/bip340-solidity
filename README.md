@@ -20,19 +20,26 @@ taken apart from the byte representations before being passed to the verifier
 code.  
 
 All of these values being 32 bytes is convenient on the EVM, as they exactly
-occupy a stack element or storage slot.
+occupy a stack element or storage slot.  This is all encapsulated by the
+`Bip340Verifier` interface.  It's presumed that either of the contracts would be
+deployed as libraries, accessed with a common interface (see below).
 
 The main functions of interest are:
 
-* `Bip340`
+* `Bip340` in general (`Naive` and `Ecrec` variants, behind `Bip340Verifier`)
   * `verify(uint256 px, uint256 rx, uint256 s, bytes32 m)`
-  * `verifyFull(uint256 px, uint256 py, uint256 rx, uint256 s, bytes32 m)`
-  * `verifyEcrecHack(uint256 px, uint256 rx, uint256 s, bytes32 m)`
+* `Bip340Naive`
+  * `verifyFull(uint256 px, uint256 py, uint256 rx, uint256 s, bytes32 m)` (may save some gas compared to naive end-to-end verify, using precomputed y coord)
 * `Bip340Batch`
   * `verifyBatch(uint256 px, uint256[] rxv, uint256[] sv, bytes32[] mv, uint256[] av)`
   * `verifyBatchFull(uint256 px, uint256 py, uint256[] rxv, uint256[] sv, bytes32[] mv, uint256[] av)`
 * `Bip340Util`
   * `liftX(uint256 px)` returning Y coordinate and success
+
+### Spec-mirroring "naive" impl
+
+The naive impl implements a verifier according to the spec as well as it can.
+This is in the `Bip340Naive.sol` and the `Bip340Batch.sol` contracts.
 
 The `Full` variants of the functions vary from the non-`Full` ones in that they
 require the y coordinate of the public key to be provided precomputed.  This
@@ -47,9 +54,14 @@ fine), and repeatedly hashing it with a counter.  The length of this vector
 must be 1 less than the number of signatures being verified, so verifying a
 single signature with the batch verifier would not provide any `a` values.
 
+### Optimized impl
+
 The `EcrecHack` variant uses a hack with the `ecrecover` precompile to verify
-the signature much more efficiently.  With some testing, this may replace the
-main `verify` function.
+the signature much more efficiently.  It doesn't implement the verification
+algorithm described in the spec, but it is equally correct, and since it uses
+the precompile, a tremendous amount is saved on gas and on-chain bytecode space.
+
+You probably want to use this one.
 
 ## Testing
 
