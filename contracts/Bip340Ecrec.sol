@@ -8,9 +8,10 @@ import "./Bip340.sol";
 import "./Bip340Util.sol";
 
 contract Bip340Ecrec is Bip340Verifier {
-    // Uses the ecrecover hack to verify a schnorr signature more efficiently than it should.
-    //
-    // Based on https://hackmd.io/@nZ-twauPRISEa6G9zg3XRw/SyjJzSLt9
+    /// Uses the ecrecover hack to verify a schnorr signature more efficiently than it should.
+    ///
+    // Based on `https://hackmd.io/@nZ-twauPRISEa6G9zg3XRw/SyjJzSLt9`
+    // ^ this line is un-doc-commented because solc is annoying
     function verify(uint256 px, uint256 rx, uint256 s, bytes32 m) public override returns (bool) {
         // Check pubkey, rx, and s are in-range.
         if (px >= Secp256k1.PP || rx >= Secp256k1.PP || s >= Secp256k1.NN) {

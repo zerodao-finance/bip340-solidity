@@ -79,14 +79,15 @@ brownie test --network anvil
 You must run the test from the directory because the Python scripts look to the
 adjacent `test-vectors.csv` to find them.
 
-**NB:** Tests for single verify currently use the `verifyEcrecHack` variant.
+**NB:** Tests for single verify currently only verify the `Bip340Ecrec` variant,
+but they were tested on both.  Change this with `sed -i 's/Bip340Ecrec/Bip340Naive/g' test_verify.py`.
 
 ## Gas costs
 
-Verifying a single signature with this library costs ~610k gas.  Verifying a
+Verifying a single signature with the naive library costs ~1M gas.  Verifying a
 batch of signatures is hard to measure directly, but it seems safe to verify
 up to 20 signatures before reaching whatever the default limit Anvil sets.
 
-Using the hacky verification uses less gas, in the order of ~80k, but need more
-precise measurement.
+**However**, using the `ecrecover`-based verifier, it only costs ~40k gas.  So
+you should be using that one unless you have a reason.
 

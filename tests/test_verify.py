@@ -42,12 +42,13 @@ BATCH_MSG_HASHES = [
 # e = 72dcfd80a93844c4413d153a5c5203bdb93515f3d35ec6158bd46895a25dbef0
 # rv = 02 7674d4cbe57e69dea138a3e87ad9acb935019b30a276d6afcff73b1b608c97d9
 
-def test_verify_single(Bip340, accounts):
+def test_verify_single(Bip340Ecrec, CallerHarness, accounts):
     priority_fee('10 gwei')
 
     pkx = int.from_bytes(binascii.unhexlify(PK_X), 'big')
 
-    lib = accounts[0].deploy(Bip340)
+    lib = accounts[0].deploy(Bip340Ecrec)
+    harness = accounts[0].deploy(CallerHarness)
 
     for check_idx in range(3):
         sig = binascii.unhexlify(BATCH_SIGS[check_idx])
@@ -58,16 +59,21 @@ def test_verify_single(Bip340, accounts):
 
         print(pkx, sig_rx, sig_s, BATCH_MSG_HASHES[check_idx])
 
-        res = lib.verifyEcrecHack.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
-        print('RES', check_idx, res)
-        assert res, 'verify failed when should have passed'
+        rec = harness.verifySig.transact(lib.address, pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+        res = rec.events[0]
+        ok = res['ok']
+        gas_used = res['gasUsed']
 
-def test_verify_invalid(Bip340, accounts):
+        print('RES', check_idx, ok, 'GAS', gas_used)
+        assert ok, 'verify failed when should have passed'
+
+def test_verify_invalid(Bip340Ecrec, CallerHarness, accounts):
     priority_fee('10 gwei')
 
     pkx = int.from_bytes(binascii.unhexlify(PK_X), 'big')
 
-    lib = accounts[0].deploy(Bip340)
+    lib = accounts[0].deploy(Bip340Ecrec)
+    harness = accounts[0].deploy(CallerHarness)
 
     for check_idx in range(3):
         sig = binascii.unhexlify(BATCH_SIGS[check_idx])
@@ -83,14 +89,19 @@ def test_verify_invalid(Bip340, accounts):
 
         print(pkx, sig_rx, sig_s, BATCH_MSG_HASHES[check_idx])
 
-        res = lib.verifyEcrecHack.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
-        print('RES', check_idx, res)
-        assert not res, 'verify passed when should have failed'
+        rec = harness.verifySig.transact(lib.address, pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+        res = rec.events[0]
+        ok = res['ok']
+        gas_used = res['gasUsed']
 
-def test_vectors(Bip340, accounts):
+        print('RES', check_idx, ok, 'GAS', gas_used)
+        assert not ok, 'verify passed when should have failed'
+
+def test_vectors(Bip340Ecrec, CallerHarness, accounts):
     priority_fee('10 gwei')
 
-    lib = accounts[0].deploy(Bip340)
+    lib = accounts[0].deploy(Bip340Ecrec)
+    harness = accounts[0].deploy(CallerHarness)
 
     with open('test-vectors.csv', 'r') as csvfile:
         tvs = csv.DictReader(csvfile)
@@ -101,7 +112,7 @@ def test_vectors(Bip340, accounts):
             pkx_bytes = binascii.unhexlify(row['public key'])
             msghash = binascii.unhexlify(row['message'])
             sig = binascii.unhexlify(row['signature'])
-            exp_res = row['verification result'] == 'TRUE'
+            exp_ok = row['verification result'] == 'TRUE'
 
             #print(row)
 
@@ -109,12 +120,12 @@ def test_vectors(Bip340, accounts):
             sig_rx = int.from_bytes(sig[:32], 'big')
             sig_s = int.from_bytes(sig[32:], 'big')
 
-            res = lib.verifyEcrecHack.call(pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
-            #print('RES', res)
-            #for ev in res.events:
-            #    print('event', ev)
+            rec = harness.verifySig.transact(lib.address, pkx, sig_rx, sig_s, msghash, {'from': accounts[0]})
+            res = rec.events[0]
+            ok = res['ok']
+            gas_used = res['gasUsed']
 
-            print('RES', row['index'], 'exp', exp_res, 'got', res)
-            if res != exp_res:
+            print('RES', row['index'], 'exp', exp_ok, 'got', ok, 'GAS', gas_used)
+            if ok != exp_ok:
                 raise RuntimeError('discrepancy with test vector: %s (%s)' % (row['index'], row['comment']))
 
