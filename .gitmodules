@@ -1,0 +1,3 @@
+[submodule "bip340-solidity/lib/forge-std"]
+	path = bip340-solidity/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
