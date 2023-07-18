@@ -1,0 +1,357 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "px",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rx",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "s",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "m",
+          "type": "bytes32"
+        }
+      ],
+      "name": "verify",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x",
+    "sourceMap": "",
+    "linkReferences": {}
+  },
+  "methodIdentifiers": {
+    "verify(uint256,uint256,uint256,bytes32)": "0fde6e55"
+  },
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"px\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rx\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"s\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"m\",\"type\":\"bytes32\"}],\"name\":\"verify\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"verify(uint256,uint256,uint256,bytes32)\":{\"notice\":\"Verifies a BIP340 signature parsed as `(rx, s)` form against a message `m` and a pubkey's x coord `px`. px - public key x coordinate rx - signature r commitment s - signature s proof m - message hash\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/Bip340.sol\":\"Bip340Verifier\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\"]},\"sources\":{\"src/Bip340.sol\":{\"keccak256\":\"0xe3ad8d3f2091c66b5e9dd21555c7cbba70120ff996b8ad1680c513bfc4233a26\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://30a47ab0d6e18c7b7dd47a7ff428a7c7be1a02788f8836898275c20f869660a0\",\"dweb:/ipfs/QmSkC9DocE8QzqZLqgKJQmADJ745LSwjsjH3JqemgLqyt2\"]}},\"version\":1}",
+  "metadata": {
+    "compiler": {
+      "version": "0.8.20+commit.a1b79de6"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "px",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "rx",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "s",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "m",
+              "type": "bytes32"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function",
+          "name": "verify",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        }
+      ],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {},
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {
+          "verify(uint256,uint256,uint256,bytes32)": {
+            "notice": "Verifies a BIP340 signature parsed as `(rx, s)` form against a message `m` and a pubkey's x coord `px`. px - public key x coordinate rx - signature r commitment s - signature s proof m - message hash"
+          }
+        },
+        "version": 1
+      }
+    },
+    "settings": {
+      "remappings": [
+        ":ds-test/=lib/forge-std/lib/ds-test/src/",
+        ":forge-std/=lib/forge-std/src/"
+      ],
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "metadata": {
+        "bytecodeHash": "ipfs"
+      },
+      "compilationTarget": {
+        "src/Bip340.sol": "Bip340Verifier"
+      },
+      "libraries": {}
+    },
+    "sources": {
+      "src/Bip340.sol": {
+        "keccak256": "0xe3ad8d3f2091c66b5e9dd21555c7cbba70120ff996b8ad1680c513bfc4233a26",
+        "urls": [
+          "bzz-raw://30a47ab0d6e18c7b7dd47a7ff428a7c7be1a02788f8836898275c20f869660a0",
+          "dweb:/ipfs/QmSkC9DocE8QzqZLqgKJQmADJ745LSwjsjH3JqemgLqyt2"
+        ],
+        "license": "MIT"
+      }
+    },
+    "version": 1
+  },
+  "ast": {
+    "absolutePath": "src/Bip340.sol",
+    "id": 38877,
+    "exportedSymbols": {
+      "Bip340Verifier": [
+        38876
+      ]
+    },
+    "nodeType": "SourceUnit",
+    "src": "33:403:15",
+    "nodes": [
+      {
+        "id": 38861,
+        "nodeType": "PragmaDirective",
+        "src": "33:24:15",
+        "nodes": [],
+        "literals": [
+          "solidity",
+          ">=",
+          "0.8",
+          ".0"
+        ]
+      },
+      {
+        "id": 38876,
+        "nodeType": "ContractDefinition",
+        "src": "59:375:15",
+        "nodes": [
+          {
+            "id": 38875,
+            "nodeType": "FunctionDefinition",
+            "src": "346:86:15",
+            "nodes": [],
+            "documentation": {
+              "id": 38862,
+              "nodeType": "StructuredDocumentation",
+              "src": "90:251:15",
+              "text": "Verifies a BIP340 signature parsed as `(rx, s)` form against a message\n `m` and a pubkey's x coord `px`.\n px - public key x coordinate\n rx - signature r commitment\n s - signature s proof\n m - message hash"
+            },
+            "functionSelector": "0fde6e55",
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "verify",
+            "nameLocation": "355:6:15",
+            "parameters": {
+              "id": 38871,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 38864,
+                  "mutability": "mutable",
+                  "name": "px",
+                  "nameLocation": "370:2:15",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 38875,
+                  "src": "362:10:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 38863,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "362:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 38866,
+                  "mutability": "mutable",
+                  "name": "rx",
+                  "nameLocation": "382:2:15",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 38875,
+                  "src": "374:10:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 38865,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "374:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 38868,
+                  "mutability": "mutable",
+                  "name": "s",
+                  "nameLocation": "394:1:15",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 38875,
+                  "src": "386:9:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  },
+                  "typeName": {
+                    "id": 38867,
+                    "name": "uint256",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "386:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint256",
+                      "typeString": "uint256"
+                    }
+                  },
+                  "visibility": "internal"
+                },
+                {
+                  "constant": false,
+                  "id": 38870,
+                  "mutability": "mutable",
+                  "name": "m",
+                  "nameLocation": "405:1:15",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 38875,
+                  "src": "397:9:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 38869,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "397:7:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "361:46:15"
+            },
+            "returnParameters": {
+              "id": 38874,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 38873,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 38875,
+                  "src": "426:4:15",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bool",
+                    "typeString": "bool"
+                  },
+                  "typeName": {
+                    "id": 38872,
+                    "name": "bool",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "426:4:15",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "425:6:15"
+            },
+            "scope": 38876,
+            "stateMutability": "nonpayable",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "Bip340Verifier",
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "linearizedBaseContracts": [
+          38876
+        ],
+        "name": "Bip340Verifier",
+        "nameLocation": "69:14:15",
+        "scope": 38877,
+        "usedErrors": [],
+        "usedEvents": []
+      }
+    ],
+    "license": "MIT"
+  },
+  "id": 15
+}
